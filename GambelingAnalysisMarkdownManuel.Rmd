@@ -1,0 +1,243 @@
+---
+title: "Gambeling Analysis Manual"
+author: "Dimitri Kestenbaum, Nixia Sancy, and Inder Rana"
+date: "12/17/2021"
+output: pdf_document
+---
+![IESEG Logo](~/Desktop/marketing_datamart/gambeling_analysis/Ieseg School of Management.png)
+```{r setup, include=FALSE}
+library('ggplot2')
+load("~/Desktop/marketing_datamart/gambeling_analysis/base_table.Rdata")
+knitr::opts_chunk$set(echo = TRUE,cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,fig.align = 'center')
+```
+
+# Analysis Overview
+
+The purpose of this manual is to provide our marketing analysis team with a high-level overview of the relevant statistical summaries of this descriptive analysis project. Provided additionally, are explanations for the different features or variables which we engineered as a team in order to extract additional insight from the dataset, which can be used in future analysis such as segmentation or predictive analytics. 
+
+**Basetable Variable Summary Statistics:**  
+
+*Total Bets Stats:*
+
+```{r, echo=FALSE,results=TRUE}
+print(summary(final_base_table$total_bets))
+```
+
+
+*Total Stakes Stats:*
+
+```{r,echo=FALSE,include=TRUE,results=TRUE,comment=FALSE, warning=FALSE,message=FALSE}
+summary(final_base_table$total_stakes)
+```
+
+
+*Total Wins Stats:*  
+
+```{r,echo=FALSE, include=TRUE,results=TRUE,comment=FALSE, warning=FALSE,message=FALSE}
+summary(final_base_table$total_wins)
+```
+*Total Profit Stats:*  
+
+```{r,echo=FALSE, include=TRUE,results=TRUE,comment=FALSE, warning=FALSE,message=FALSE}
+## Total bets summary sa
+summary(final_base_table$profit)
+```
+\newpage
+**Created Metrics:**
+
+*LOR (Length of Relationship):*
+
+Calculated by subtracting registration date (RegDate) from the latest date in the dataset October, 2nd 2005. The unit of this measure is days since registration date. As the histogram below displays, the highest count of in the distribution is found in the interval from 220 days to 225 days. 
+
+```{r,echo=FALSE,cache=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+## Total bets summary sa
+histogram_LOR <- ggplot(final_base_table, aes(x=LOR)) +
+  geom_histogram() 
+histogram_LOR
+```
+\newpage
+*PTAI (Pay to Active Interval):*
+
+This time interval is found by subtracting the time from the first deposit of funds for betting to the date where the gambler is first actively participating in play. The unit of this measure is days. The histogram below shows that the dataset's PTAI is uniformly distributed with very little variance. However, there are a few outliers in both the positive and negative directions. This means in a few cases gamblers were actively playing prior to their first date due to promotional campaigns.
+
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+## Total bets summary sa
+histogram_PTAI <- ggplot(final_base_table, aes(x=PTAI)) +
+  geom_histogram(bins=4) 
+histogram_PTAI
+```
+\newpage
+*RTFP (Registration to First Payment):*
+
+This metric is a time interval from a gambler registration date to the first deposit of funds for betting. It is calculated by subtracting the registration date from the first pay date. It's unit of measure is days. 
+
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+## Total bets summary sa
+histogram_RTFP <- ggplot(final_base_table, aes(x=RTFP)) +
+  geom_histogram() 
+histogram_RTFP
+```
+
+
+The distribution of RTFP above demonstrates that the vast majority of gamblers made their first deposit of gambling funds the same day they were registered. However, some outliers on the far right of the horizontal axis indicate anomalous behavior paying as much as 242 days after registering. There are no gamblers with a negative RTFP, as all gamblers with a first pay date before registration were filtered from the dataset. 
+
+*Maximum RTFP:*
+
+```{r, echo=FALSE, include=TRUE,results=TRUE,comment=FALSE, warning=FALSE,message=FALSE}
+max(final_base_table$RTFP)
+```
+*Minimum RTFP:*
+
+```{r, echo=FALSE, include=TRUE,results=TRUE,comment=FALSE, warning=FALSE,message=FALSE}
+min(final_base_table$RTFP)
+```
+\newpage
+*Recency:*
+
+The `recency_days` variable indicates the number of days elapsed ranging from the gambler's most recent transaction date to the last date featured in the dataset; October 10th, 2005. 
+
+
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+histogram_recency <- ggplot(final_base_table, aes(x=recency_days)) +
+  geom_histogram() 
+histogram_recency
+```
+\newpage
+*Frequency:*
+
+The metric frequency represents the number of dates which a gambler in the dataset made a transaction of any form. It's visible in the histogram figure below that the majority gamblers had a frequency somewhere between 0-100 days or transactions during the aforementioned period.  
+
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+histogram_frequency <- ggplot(final_base_table, aes(x=frequency)) +
+  geom_histogram() 
+histogram_frequency
+```
+
+The median frequency displays a point of central tendency for gambler frequency without being distorted by extreme outliers on the far right of the distribution.  
+
+*Median Gambler Frequency:*
+```{r, echo=FALSE, include=TRUE,results=TRUE,comment=FALSE, warning=FALSE,message=FALSE}
+median(final_base_table$frequency)
+```
+
+*Monetary Value:*
+
+The metric `monetary_value` represents the total amount of money won by each individual gambler for the relevant time period of February 2nd, 2005 to February 27th, 2005. The second figure below shows the relationship between frequency, recency, and monetary value as well as an annotation displaying the gambler ID number with the highest total winnings or monetary value.  
+
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+histogram_monetary_value <- ggplot(final_base_table, aes(x=monetary_value)) +
+  geom_histogram() 
+histogram_monetary_value
+```  
+
+  
+  
+  
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+#create plot that visualizes monetary value (gambler' winnings), frequency, and recency
+scatter_plot_monetary_value <- ggplot(final_base_table, aes(x=frequency,y=monetary_value,color=recency)) + 
+ggtitle('Gambler total winnings against frequency') + 
+xlab('Frequency (days)') + 
+ylab('Total winnings (Euros)') + 
+#create annotation for most extreme outlier, displaying their ID
+annotate(geom='text',x = 175, y= 1070000, label='Gambler ID with highest winnings',color='blue')
+
+#code adapted and inspired from this forum thread: https://stackoverflow.com/questions/1923273/counting-the-number-of-elements-with-the-values-of-x-in-a-vector
+scatter_plot_monetary_value_1 <- lapply(final_base_table[1], function(data) scatter_plot_monetary_value +
+geom_jitter(alpha=0.5) + 
+theme_light(base_size=11) + 
+theme(plot.title = element_text(hjust = 0.5)) + 
+geom_text(aes(label= ifelse(final_base_table$monetary_value > quantile(final_base_table$monetary_value, 0.9999999),as.character(final_base_table$UserID),'')),hjust=0,vjust=0))
+
+scatter_plot_monetary_value_1
+```
+
+
+*Weigthed RFM (Recency Frequency and Monetary Value) Score:*
+
+The Weighted RFM metric encapsulates information from the three previous metrics which are weighted and represented in one coefficient, where 1.6 represents the first percentile of gamblers for the metric, i.e. those with the highest score or summation of the metrics (`recency_score`,`frequency_score`, and `monetary_value_score`), which is itself represented in its full numerical value as `rfm_value`. The three metrics are then transformed into numeric values respectively, with the same ranking system as weighted RFM.`weighted_rfm` is an aggregate weighted value of these three intermediary metrics to give a comprehensive measure of each gambler's RFM value.  
+
+
+
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+histogram_monetary_RFM_score <- ggplot(final_base_table, aes(x=weighted_rfm)) +
+  geom_histogram() 
+histogram_monetary_RFM_score
+```
+\newpage
+The following plot displays the relationship of RFM value (unweighted) to profit (for Bwin).  
+
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+profit_to_rfm <- ggplot(final_base_table,aes(x=rfm_value,y=profit,size=amount)) + 
+  geom_point() + 
+  theme_bw() + 
+  ggtitle('Profit against RFM value' ) +
+  labs(x='RFM value', y='Profit (Euros)',size='Total Winnings (Euros)') + theme(legend.position='top') +
+  geom_smooth(method = 'lm') + theme(plot.title = element_text(hjust = 0.5))
+profit_to_rfm
+```
+
+It is visible that there's actually a somewhat weak correlation between profit for the brand and RFM value of the gambler. Additionally, the gamblers with a mid-range RFM value are the most profitable gamblers for Bwin. The pearson correlation coefficient can be found below.
+
+```{r, echo=FALSE, include=TRUE,results=TRUE,comment=FALSE, warning=FALSE,message=FALSE}
+cor(final_base_table$profit,final_base_table$rfm_value)
+```
+
+\newpage
+*Loyality:*  
+
+The loyality metric categorizes each gambler in the dataset in one of the following bins: Regular Customers, Hesitant Customers, Needs Attention, Potential Loyalists, and Loyalists. The tier in which a gambler falls within is dictated by their weighted RFM scored classified as follows:  
+
+* Weighted RFM score greater than 1.6: Loyalists  
+* Weighted RFM between 1.6 and 1.3: Potential Loyalists  
+* Weighted RFM between 1.3 and 0.7: Regular Customers   
+* Weighted RFM between 0.7 and 0.4: Hesistant customers   
+* Finally, a weighted RFM below 0.4: Needs Attention   
+
+Below is a bar chart of the frequency count of gambler loyality segments:
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE, warning=FALSE,message=FALSE}
+
+if(!require("dplyr")) install.packages("dplyr"); library("dplyr")
+loyal <- final_base_table %>% filter(!is.na(Loyality)) %>%
+group_by(Loyality) %>% 
+summarise(count = n()) %>% arrange(count)
+
+bar_chart_loyality <- ggplot(loyal, aes(x=Loyality,y=count)) + geom_bar(stat='identity')
+bar_chart_loyality
+```
+
+*Gambler Betting Behavior* 
+
+The group of metrics with the suffix 'Played'(`SpPlayed`,`CaPlayed`,`GaPlayed`,and `PoPlayed`) are binary variables which represent if a gambler has participated in a betting category (Sports Book, Casino, Games, or Poker), with 1 representing that there is a first play date for the category and 0 representing that there is no play date for the category during the relevant time period. 
+
+```{r,echo=FALSE,cache=FALSE, warning=FALSE, comment=FALSE}
+
+col_names <- c("SpPlayed","CaPlayed","GaPlayed","PoPlayed")
+
+plot_list <- list()
+for (i in col_names) {
+  plot <- ggplot(final_base_table,aes_string(y=i)) + geom_bar()
+  plot_list[[i]] <- plot
+}
+
+for (i in 1:length(plot_list)) {
+    print(plot_list[i])
+}
+
+```
+\newpage
+
+**Final Takeaways**:
+
+*The most relevant insights from a business perspective that our analysis brought to the forefront are as follow:*
+
+* We have a small population of loyalists with a mid-range betting frequency, who seldomly win big, but bet a lot of money, making them our most profitable gamblers.  
+
+* We have large population of passive or casual betters with low-frequency betting, whom are winning at a larger rate substantially than our loyalists. 
+
+* RFM is weakly correlated with profit for Bwin, and gamblers with a mid-range RFM value are our most profitable segment of gamblers.
+
+* Finally, we know that the gamblers are segmented into five different segments (Need attention, Hesitant Customers, Regular Customers, Potential Loyalists, and Loyalists). These clusters have been validated using a K-means clustering algorithm in addition to our RFM scoring system. Furthermore, we know that the quantity of gamblers in each of these bins which will be useful when targeting them in marketing campaigns.
+
+* To explore the dataset and view other relevant plots via a Shiny R app, [**click here**](https://inder-rana.shinyapps.io/gambeling_analysis_app/)  
+
